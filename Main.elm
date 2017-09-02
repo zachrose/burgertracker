@@ -62,7 +62,6 @@ model = Model guests "" False False requests
 
 -- update
 
-
 type Msg
   = SubmitGuest 
   | AddRequest
@@ -72,21 +71,6 @@ type Msg
 
 without predicate list =
   ( Tuple.second ( List.partition predicate list ) )
-
-validateGuest : Guest -> Bool
-validateGuest guest =
-  not ( String.isEmpty guest.name )
-
-guestValidationMessage : Model -> String
-guestValidationMessage model =
-  let
-    guestIsValid = validateGuest (Guest model.newGuestName model.newGuestComped)
-    untouched = not model.newGuestSubmitted
-  in
-    if guestIsValid || untouched then
-      ""
-    else
-      "Guest name cannot be empty"
 
 update : Msg -> Model -> Model
 update msg model =
@@ -111,6 +95,24 @@ update msg model =
       { model | requests = Request ben cheeseburger :: model.requests }
     DeleteGuest guest ->
       { model | guests = without (\g -> g == guest) model.guests }
+
+
+-- view
+
+validateGuest : Guest -> Bool
+validateGuest guest =
+  not ( String.isEmpty guest.name )
+
+guestValidationMessage : Model -> String
+guestValidationMessage model =
+  let
+    guestIsValid = validateGuest (Guest model.newGuestName model.newGuestComped)
+    untouched = not model.newGuestSubmitted
+  in
+    if guestIsValid || untouched then
+      ""
+    else
+      "Guest name cannot be empty"
 
 css : String -> Html.Html msg
 css path =
