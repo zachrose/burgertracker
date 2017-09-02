@@ -144,7 +144,7 @@ css path =
 viewRequest: Request -> Html.Html Msg
 viewRequest request =
   Html.li [] [
-    Html.text ( request.guest.name ++ " " ++ request.item.name )
+    Html.text ( request.guest.name ++ " wants a " ++ request.item.name )
   ]
 
 compedText comped = if comped then "*" else ""
