@@ -1,14 +1,18 @@
 module Main exposing (..)
 
 import Html
+import Task
+import Time
 import Html.Attributes as A
 import Html.Events as E
 
 main =
-  Html.beginnerProgram
-    { model = model
-    , view = view
+  Html.program
+    { init = init
+    -- , model = model
+    , subscriptions = subscriptions
     , update = update
+    , view = view
     }
 
 -- model
@@ -17,11 +21,6 @@ type alias MenuItem =
   { name: String
   , priceInCents: Int
   }
-
-hamburger    = MenuItem "Hambrger"      100
-cheeseburger = MenuItem "Cheeseburger"  149
-fries        = MenuItem "Fries"         125
-soda         = MenuItem "Soda"          199
 
 type alias Model =
   { guests : List Guest
@@ -45,11 +44,21 @@ makeGuest : String -> Guest
 makeGuest name =
   Guest name False
 
+
+-- init
+
+hamburger    = MenuItem "Hambrger"      100
+cheeseburger = MenuItem "Cheeseburger"  149
+fries        = MenuItem "Fries"         125
+soda         = MenuItem "Soda"          199
+
+menuItems = [ hamburger, cheeseburger, fries, soda ]
+
 ben : Guest
-ben = makeGuest "ben"
+ben = makeGuest "Ben"
 
 charlie : Guest
-charlie = Guest "charlie" True
+charlie = Guest "Charlie" True
 
 guests : List Guest
 guests = [ ben, charlie ]
@@ -60,19 +69,31 @@ requests = [ Request ben cheeseburger, Request charlie hamburger ]
 model : Model
 model = Model guests "" False False requests
 
+init = (model, Cmd.none)
+
+-- subscriptions
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Sub.none
+
 -- update
 
 type Msg
   = SubmitGuest 
-  | AddRequest
+  | AddRequest Guest MenuItem
   | NewGuestName String
   | NewGuestComped
   | DeleteGuest Guest
+  | OnTime Time.Time
+
+getTime =
+  Task.perform OnTime Time.now
 
 without predicate list =
   ( Tuple.second ( List.partition predicate list ) )
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
     SubmitGuest ->
@@ -81,20 +102,22 @@ update msg model =
         newGuest = Guest model.newGuestName model.newGuestComped
       in
         if validateGuest newGuest then
-          { model |
+          ({ model |
               guests = newGuest :: model.guests,
               newGuestName = ""
-          }
+          }, Cmd.none)
         else
-          newModel
+          (newModel, Cmd.none)
     NewGuestName name ->
-      { model | newGuestName = name }
+      ({ model | newGuestName = name }, Cmd.none )
     NewGuestComped ->
-      { model | newGuestComped = True }
-    AddRequest ->
-      { model | requests = Request ben cheeseburger :: model.requests }
+      ({ model | newGuestComped = True }, Cmd.none )
+    AddRequest guest menuItem ->
+      ({ model | requests = Request guest menuItem :: model.requests }, Cmd.none )
     DeleteGuest guest ->
-      { model | guests = without (\g -> g == guest) model.guests }
+      ({ model | guests = without (\g -> g == guest) model.guests }, Cmd.none )
+    OnTime time ->
+      ( model, Cmd.none )
 
 
 -- view
@@ -124,43 +147,39 @@ viewRequest request =
     Html.text ( request.guest.name ++ " " ++ request.item.name )
   ]
 
-compedText comped = if comped then " (comped)" else ""
+compedText comped = if comped then "*" else ""
 
-menuItemButton : String -> Html.Html Msg
-menuItemButton menuItemName =
-  Html.li [E.onClick ( AddRequest )] [ Html.text ("add" ++ menuItemName )]
+menuItemButton : Guest -> MenuItem -> Html.Html Msg
+menuItemButton guest menuItem =
+  Html.li [] [
+    Html.button [E.onClick ( AddRequest guest menuItem)] [ Html.text ("request " ++ menuItem.name )]
+  ]
 
 viewGuest : Guest -> Html.Html Msg
 viewGuest guest =
   Html.li []
-    [ Html.span []
-      [ Html.text guest.name
-      , Html.text ( compedText guest.comped )
-      ],
-      Html.span [ E.onClick ( DeleteGuest guest ) ] [ Html.text " delete" ],
-      Html.ul [] (List.map menuItemButton ["hamburger"])
+    [ Html.h4 [] [ Html.text (guest.name ++ compedText guest.comped )]
+    , Html.button [ E.onClick ( DeleteGuest guest ) ] [ Html.text " delete" ]
+    , Html.ul [] (List.map (menuItemButton guest) menuItems)
     ]
 
 view : Model -> Html.Html Msg
 view model =
   Html.div []
     [ css "style.css"
-    , Html.text "bottomless burger bonds"
+    , Html.h1 [] [ Html.text "BBB" ]
     , Html.div [ A.id "guests" ]
-      [ Html.ul [] (List.map viewGuest model.guests)
+      [ Html.h2 [] [ Html.text "Guests" ]
+      , Html.ul [] (List.map viewGuest model.guests)
       , Html.div []
-        [ Html.p [ A.class "error" ] [ Html.text ( guestValidationMessage model ) ]
+        [ Html.h3 [] [ Html.text "Add Guest" ]
+        , Html.p [ A.class "error" ] [ Html.text ( guestValidationMessage model ) ]
         , Html.input [ E.onInput NewGuestName, A.type_ "text", A.value model.newGuestName ] []
         , Html.input [ E.onClick NewGuestComped, A.type_ "checkbox" ] []
         , Html.button [ E.onClick SubmitGuest ] [ Html.text "submit" ]
         ]
       ]
     , Html.div [ A.id "requests" ]
-      [ Html.ul [] (List.map viewRequest model.requests)
-      , Html.div []
-        [ Html.button
-          [ E.onClick AddRequest ]
-          [ Html.text "cheeseburger" ]
-        ]
-      ]
+      [ Html.h2 [] [ Html.text "Requests" ]
+      , Html.ul [] (List.map viewRequest model.requests) ]
     ]
