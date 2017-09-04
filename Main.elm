@@ -17,9 +17,18 @@ main =
 
 -- model
 
+type Guest
+  = NormalGuest String
+  | CompedGuest String
+
 type alias MenuItem =
   { name: String
   , priceInCents: Int
+  }
+
+type alias Request =
+  { guest: Guest
+  , item: MenuItem
   }
 
 type alias Model =
@@ -29,21 +38,6 @@ type alias Model =
   , newGuestSubmitted : Bool
   , requests : List Request
   }
-
-type alias Request =
-  { guest: Guest
-  , item: MenuItem
-  }
-
-type alias Guest =
-  { name : String
-  , comped : Bool
-  }
-
-makeGuest : String -> Guest
-makeGuest name =
-  Guest name False
-
 
 -- init
 
@@ -55,10 +49,10 @@ soda         = MenuItem "Soda"          199
 menuItems = [ hamburger, cheeseburger, fries, soda ]
 
 ben : Guest
-ben = makeGuest "Ben"
+ben = NormalGuest "Ben"
 
 charlie : Guest
-charlie = Guest "Charlie" True
+charlie = CompedGuest "Charlie"
 
 guests : List Guest
 guests = [ ben, charlie ]
@@ -98,8 +92,9 @@ update msg model =
   case msg of
     SubmitGuest ->
       let
+        newGuestType = if model.newGuestComped then CompedGuest else NormalGuest
         newModel = { model | newGuestSubmitted = True }
-        newGuest = Guest model.newGuestName model.newGuestComped
+        newGuest = newGuestType model.newGuestName
       in
         if validateGuest newGuest then
           ({ model |
@@ -124,12 +119,13 @@ update msg model =
 
 validateGuest : Guest -> Bool
 validateGuest guest =
-  not ( String.isEmpty guest.name )
+  True
+  -- not ( String.isEmpty guest )
 
 guestValidationMessage : Model -> String
 guestValidationMessage model =
   let
-    guestIsValid = validateGuest (Guest model.newGuestName model.newGuestComped)
+    guestIsValid = validateGuest (NormalGuest model.newGuestName)
     untouched = not model.newGuestSubmitted
   in
     if guestIsValid || untouched then
@@ -144,10 +140,16 @@ css path =
 viewRequest: Request -> Html.Html Msg
 viewRequest request =
   Html.li [] [
-    Html.text ( request.guest.name ++ " wants a " ++ request.item.name )
+    Html.text ( compedText( request.guest ) ++ " wants a " ++ request.item.name )
   ]
 
-compedText comped = if comped then "*" else ""
+compedText : Guest -> String
+compedText guest =
+  case guest of
+    CompedGuest guest ->
+      guest ++ "*"
+    NormalGuest guest ->
+      guest
 
 menuItemButton : Guest -> MenuItem -> Html.Html Msg
 menuItemButton guest menuItem =
@@ -158,7 +160,7 @@ menuItemButton guest menuItem =
 viewGuest : Guest -> Html.Html Msg
 viewGuest guest =
   Html.li []
-    [ Html.h4 [] [ Html.text (guest.name ++ compedText guest.comped )]
+    [ Html.h4 [] [ Html.text (compedText guest )]
     , Html.button [ E.onClick ( DeleteGuest guest ) ] [ Html.text " delete" ]
     , Html.ul [] (List.map (menuItemButton guest) menuItems)
     ]
