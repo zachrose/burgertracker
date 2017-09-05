@@ -9,7 +9,6 @@ import Html.Events as E
 main =
   Html.program
     { init = init
-    -- , model = model
     , subscriptions = subscriptions
     , update = update
     , view = view
