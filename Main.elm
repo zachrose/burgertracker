@@ -30,11 +30,22 @@ type alias Request =
   , item: MenuItem
   }
 
+type OrderStatus
+  = Open
+  | Ordered
+  | Served
+
+type alias Order =
+  { requests: List Request
+  , status: OrderStatus
+  }
+
 type alias Model =
   { guests : List Guest
-  , newGuestName : String
   , newGuestComped : Bool
+  , newGuestName : String
   , newGuestSubmitted : Bool
+  , orders : List Order
   , requests : List Request
   }
 
@@ -59,8 +70,14 @@ guests = [ ben, charlie ]
 requests : List Request
 requests = [ Request ben cheeseburger, Request charlie hamburger ]
 
+firstOrder : Order
+firstOrder =
+  { requests = []
+  , status = Open
+  }
+
 model : Model
-model = Model guests "" False False requests
+model = Model guests False "" False [ firstOrder ] requests
 
 init = (model, Cmd.none)
 
@@ -75,6 +92,7 @@ subscriptions model =
 type Msg
   = SubmitGuest 
   | AddRequest Guest MenuItem
+  | NewOrder
   | NewGuestName String
   | NewGuestComped
   | DeleteGuest Guest
@@ -102,6 +120,21 @@ update msg model =
           }, Cmd.none)
         else
           (newModel, Cmd.none)
+    NewOrder ->
+      if List.isEmpty model.requests then
+        (model, Cmd.none)
+      else
+        let
+          requests = model.requests
+          newOrder =
+          { requests = requests
+          , status = Open
+          }
+        in
+          ({ model |
+              orders = newOrder :: model.orders,
+              requests = []
+          }, Cmd.none )
     NewGuestName name ->
       ({ model | newGuestName = name }, Cmd.none )
     NewGuestComped ->
@@ -142,6 +175,18 @@ viewRequest request =
     Html.text ( compedText( request.guest ) ++ " wants a " ++ request.item.name )
   ]
 
+viewOrder: Order -> Html.Html Msg
+viewOrder order =
+  Html.li [] [
+    Html.ul [] (List.map viewRequest order.requests)
+  ]
+
+viewOrderRequest: Request -> Html.Html Msg
+viewOrderRequest request =
+  Html.li [] [
+    Html.text "foo"
+  ]
+
 compedText : Guest -> String
 compedText guest =
   case guest of
@@ -166,9 +211,12 @@ viewGuest guest =
 
 view : Model -> Html.Html Msg
 view model =
+  let
+    text s = Html.text (String.left 1 s)
+  in
   Html.div []
     [ css "style.css"
-    , Html.h1 [] [ Html.text "BBB" ]
+    , Html.h1 [] [ text "BBB" ]
     , Html.div [ A.id "guests" ]
       [ Html.h2 [] [ Html.text "Guests" ]
       , Html.ul [] (List.map viewGuest model.guests)
@@ -183,4 +231,8 @@ view model =
     , Html.div [ A.id "requests" ]
       [ Html.h2 [] [ Html.text "Requests" ]
       , Html.ul [] (List.map viewRequest model.requests) ]
+      , Html.button [ E.onClick NewOrder ] [ Html.text "move to new order" ]
+    , Html.div [ A.id "orders" ]
+      [ Html.h2 [] [ Html.text "Orders" ]
+      , Html.ul [] (List.map viewOrder model.orders) ]
     ]
