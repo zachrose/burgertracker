@@ -6,6 +6,9 @@ import Time
 import Html.Attributes as A
 import Html.Events as E
 
+import Array
+
+
 main =
   Html.program
     { init = init
@@ -34,6 +37,8 @@ type OrderStatus
   = Open
   | Ordered
   | Served
+
+orderStatuses = [ Open, Ordered, Served ]
 
 type alias Order =
   { requests: List Request
@@ -70,14 +75,8 @@ guests = [ ben, charlie ]
 requests : List Request
 requests = [ Request ben cheeseburger, Request charlie hamburger ]
 
-firstOrder : Order
-firstOrder =
-  { requests = []
-  , status = Open
-  }
-
 model : Model
-model = Model guests False "" False [ firstOrder ] requests
+model = Model guests False "" False [] requests
 
 init = (model, Cmd.none)
 
@@ -93,6 +92,7 @@ type Msg
   = SubmitGuest 
   | AddRequest Guest MenuItem
   | NewOrder
+  | AdvanceOrder Order
   | NewGuestName String
   | NewGuestComped
   | DeleteGuest Guest
@@ -135,6 +135,13 @@ update msg model =
               orders = newOrder :: model.orders,
               requests = []
           }, Cmd.none )
+    AdvanceOrder order ->
+      let
+        advancedOrder = { order | status = nextOrderAction order.status }
+        ordersWithoutOrder = Tuple.second ( List.partition (\o -> o == order) model.orders )
+        newOrders = advancedOrder :: ordersWithoutOrder
+      in
+        ( { model | orders = newOrders }, Cmd.none )
     NewGuestName name ->
       ({ model | newGuestName = name }, Cmd.none )
     NewGuestComped ->
@@ -175,11 +182,39 @@ viewRequest request =
     Html.text ( compedText( request.guest ) ++ " wants a " ++ request.item.name )
   ]
 
+nextOrderAction: OrderStatus -> OrderStatus
+nextOrderAction orderStatus =
+  case orderStatus of
+    Open -> Ordered
+    Ordered -> Served
+    Served -> Served
+
+orderActionString : OrderStatus -> String
+orderActionString orderStatus =
+  case orderStatus of
+    Open -> "mark as ordered"
+    Ordered -> "mark as served"
+    Served -> "serve"
+
+orderStatusString : OrderStatus -> String
+orderStatusString orderStatus =
+  case orderStatus of
+    Open -> "not yet ordered"
+    Ordered -> "ordered"
+    Served -> "served"
+
 viewOrder: Order -> Html.Html Msg
 viewOrder order =
-  Html.li [] [
-    Html.ul [] (List.map viewRequest order.requests)
-  ]
+  let
+    nextActionEl = case order.status of
+      Served -> (Html.p [] [Html.text ""])
+      _ -> (Html.button [ E.onClick (AdvanceOrder order )] [ Html.text (orderActionString order.status) ])
+  in
+    Html.li []
+    [ Html.ul [] (List.map viewRequest order.requests)
+    , Html.p [] [Html.text (orderStatusString order.status) ]
+    , nextActionEl
+    ]
 
 viewOrderRequest: Request -> Html.Html Msg
 viewOrderRequest request =
