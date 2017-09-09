@@ -244,6 +244,10 @@ viewGuest guest =
     , Html.ul [] (List.map (menuItemButton guest) menuItems)
     ]
 
+filterOrderBy : OrderStatus -> List Order -> List Order
+filterOrderBy status orders =
+  List.filter (\o -> o.status == status) orders
+
 view : Model -> Html.Html Msg
 view model =
   let
@@ -267,7 +271,13 @@ view model =
       [ Html.h2 [] [ Html.text "Requests" ]
       , Html.ul [] (List.map viewRequest model.requests) ]
       , Html.button [ E.onClick NewOrder ] [ Html.text "move to new order" ]
-    , Html.div [ A.id "orders" ]
-      [ Html.h2 [] [ Html.text "Orders" ]
-      , Html.ul [] (List.map viewOrder model.orders) ]
+    , Html.div [ A.id "open-orders" ]
+      [ Html.h2 [] [ Html.text "Open Orders" ]
+      , Html.ul [] (List.map viewOrder (filterOrderBy Open model.orders)) ]
+    , Html.div [ A.id "ordered-orders" ]
+      [ Html.h2 [] [ Html.text "Ordered Orders" ]
+      , Html.ul [] (List.map viewOrder (filterOrderBy Ordered model.orders)) ]
+    , Html.div [ A.id "served-orders" ]
+      [ Html.h2 [] [ Html.text "Served Orders" ]
+      , Html.ul [] (List.map viewOrder (filterOrderBy Served model.orders)) ]
     ]
