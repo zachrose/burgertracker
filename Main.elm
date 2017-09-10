@@ -209,7 +209,9 @@ viewOrder order =
     Html.li []
     [ Html.ul [] (List.map viewRequest order.requests)
     , nextActionEl
+    , Html.p [] [ Html.text (format (orderCost order ) ) ]
     ]
+
 
 viewOrderRequest: Request -> Html.Html Msg
 viewOrderRequest request =
@@ -258,12 +260,46 @@ format price =
   in
     "$" ++ dollars ++ "." ++ cents
 
+orderCost : Order -> PriceInCents
+orderCost order =
+  let
+    requests = order.requests
+    menuItemPrices = List.map (\r -> r.item.price) requests
+  in
+    List.foldr (+) 0 menuItemPrices
+
+expenses : Model -> PriceInCents
+expenses model =
+  let
+    ordersCosts = List.map (\o -> orderCost o) model.orders
+    ordersCost = List.foldr (+) 0 ordersCosts
+    requestsCosts = List.map (\r -> r.item.price) model.requests
+    requestsCost = List.foldr (+) 0 requestsCosts
+  in
+    requestsCost + ordersCost
+
+revenue : Model -> PriceInCents
+revenue model =
+  (List.length model.guests) * 16 * 100
+
+profitable : Model -> Bool
+profitable model =
+  revenue model > expenses model
+
+profitableClass : Model -> String
+profitableClass model =
+  case profitable model of
+    True -> "profitable"
+    False -> "not-profitable"
+
 view : Model -> Html.Html Msg
 view model =
-  Html.div []
+  Html.body [ A.class (profitableClass model) ]
     [ css "style.css"
     , Html.header []
       [ Html.h1 [] [ Html.text "Bottomless Burgers" ]
+      , Html.p [] [ Html.text ("Revenue " ++ (format (revenue model ) ))]
+      , Html.p [] [ Html.text ("Expenses " ++ (format (expenses model ) ))]
       ]
     , Html.main_ []
       [ Html.section [ A.id "menu" ]

@@ -6,8 +6,12 @@ header {
   margin: 1em;
 }
 
+body.profitable h1 { background: green; }
+body.profitable section { border-color: green; }
+body.not-profitable h1 { background: red; }
+body.not-profitable section { border-color: red; }
+
 h1 {
-  background: red;
   padding: 0.25em 0.5em;
 }
 
@@ -17,7 +21,7 @@ main {
 
 section {
   flex-grow: 1;
-  outline: 1px solid red;
+  border: 1px solid;
   margin: 1em 0.5em;
   padding: 1em;
 }
