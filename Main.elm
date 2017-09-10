@@ -49,6 +49,7 @@ type alias Order =
 
 type alias Model =
   { menuItems: List MenuItem
+  , salesTax: Float
   , guests : List Guest
   , newGuestComped : Bool
   , newGuestName : String
@@ -78,8 +79,11 @@ guests = [ ben, charlie ]
 requests : List Request
 requests = [ Request ben cheeseburger, Request charlie hamburger ]
 
+taxRate : Float
+taxRate = 0.0925
+
 model : Model
-model = Model menuItems guests False "" False [] requests
+model = Model menuItems taxRate guests False "" False [] requests
 
 init = (model, Cmd.none)
 
@@ -276,7 +280,7 @@ expenses model =
     requestsCosts = List.map (\r -> r.item.price) model.requests
     requestsCost = List.foldr (+) 0 requestsCosts
   in
-    requestsCost + ordersCost
+    round ( toFloat ( requestsCost + ordersCost ) * ( 1 + model.salesTax ) )
 
 revenue : Model -> PriceInCents
 revenue model =
@@ -302,9 +306,11 @@ view model =
       , Html.p [] [ Html.text ("Expenses " ++ (format (expenses model ) ))]
       ]
     , Html.main_ []
-      [ Html.section [ A.id "menu" ]
+      [ Html.section [ A.id "menu-and-taxes" ]
         [ Html.h2 [] [ Html.text "Menu" ]
         , Html.ul [] (List.map viewMenuItem model.menuItems)
+        , Html.h2 [] [ Html.text "Tax" ]
+        , Html.p [] [ Html.text (toString model.salesTax) ]
         ]
       , Html.section [ A.id "guests" ]
         [ Html.h2 [] [ Html.text "Guests" ]
