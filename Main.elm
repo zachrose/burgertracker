@@ -196,13 +196,6 @@ orderActionString orderStatus =
     Ordered -> "mark as served"
     Served -> "serve"
 
-orderStatusString : OrderStatus -> String
-orderStatusString orderStatus =
-  case orderStatus of
-    Open -> "not yet ordered"
-    Ordered -> "ordered"
-    Served -> "served"
-
 viewOrder: Order -> Html.Html Msg
 viewOrder order =
   let
@@ -212,7 +205,6 @@ viewOrder order =
   in
     Html.li []
     [ Html.ul [] (List.map viewRequest order.requests)
-    , Html.p [] [Html.text (orderStatusString order.status) ]
     , nextActionEl
     ]
 
@@ -250,34 +242,38 @@ filterOrderBy status orders =
 
 view : Model -> Html.Html Msg
 view model =
-  let
-    text s = Html.text (String.left 1 s)
-  in
   Html.div []
     [ css "style.css"
-    , Html.h1 [] [ text "BBB" ]
-    , Html.div [ A.id "guests" ]
-      [ Html.h2 [] [ Html.text "Guests" ]
-      , Html.ul [] (List.map viewGuest model.guests)
-      , Html.div []
-        [ Html.h3 [] [ Html.text "Add Guest" ]
-        , Html.p [ A.class "error" ] [ Html.text ( guestValidationMessage model ) ]
-        , Html.input [ E.onInput NewGuestName, A.type_ "text", A.value model.newGuestName ] []
-        , Html.input [ E.onClick NewGuestComped, A.type_ "checkbox" ] []
-        , Html.button [ E.onClick SubmitGuest ] [ Html.text "submit" ]
+    , Html.header []
+      [ Html.h1 [] [ Html.text "Bottomless Burgers" ]
+      ]
+    , Html.main_ []
+      [ Html.section [ A.id "guests" ]
+        [ Html.h2 [] [ Html.text "Guests" ]
+        , Html.div []
+          [ Html.h3 [] [ Html.text "Add Guest" ]
+          , Html.p [ A.class "error" ] [ Html.text ( guestValidationMessage model ) ]
+          , Html.input [ E.onInput NewGuestName, A.type_ "text", A.value model.newGuestName ] []
+          , Html.input [ E.onClick NewGuestComped, A.type_ "checkbox" ] []
+          , Html.button [ E.onClick SubmitGuest ] [ Html.text "submit" ]
+          ]
+        , Html.ul [] (List.map viewGuest model.guests)
+        ]
+      , Html.section [ A.id "requests" ]
+        [ Html.h2 [] [ Html.text "Requests" ]
+        , Html.ul [] (List.map viewRequest model.requests)
+        , Html.button [ E.onClick NewOrder ] [ Html.text "move to new order" ]
+        ]
+      , Html.section [ A.id "orders" ]
+        [ Html.div [ A.id "open-orders" ]
+          [ Html.h2 [] [ Html.text "Open Orders" ]
+          , Html.ul [] (List.map viewOrder (filterOrderBy Open model.orders)) ]
+        , Html.div [ A.id "ordered-orders" ]
+          [ Html.h2 [] [ Html.text "Ordered Orders" ]
+          , Html.ul [] (List.map viewOrder (filterOrderBy Ordered model.orders)) ]
+        , Html.div [ A.id "served-orders" ]
+          [ Html.h2 [] [ Html.text "Served Orders" ]
+          , Html.ul [] (List.map viewOrder (filterOrderBy Served model.orders)) ]
         ]
       ]
-    , Html.div [ A.id "requests" ]
-      [ Html.h2 [] [ Html.text "Requests" ]
-      , Html.ul [] (List.map viewRequest model.requests) ]
-      , Html.button [ E.onClick NewOrder ] [ Html.text "move to new order" ]
-    , Html.div [ A.id "open-orders" ]
-      [ Html.h2 [] [ Html.text "Open Orders" ]
-      , Html.ul [] (List.map viewOrder (filterOrderBy Open model.orders)) ]
-    , Html.div [ A.id "ordered-orders" ]
-      [ Html.h2 [] [ Html.text "Ordered Orders" ]
-      , Html.ul [] (List.map viewOrder (filterOrderBy Ordered model.orders)) ]
-    , Html.div [ A.id "served-orders" ]
-      [ Html.h2 [] [ Html.text "Served Orders" ]
-      , Html.ul [] (List.map viewOrder (filterOrderBy Served model.orders)) ]
     ]

@@ -1,0 +1,31 @@
+body {
+  font-family: Helvetica;
+}
+
+header {
+  margin: 1em;
+}
+
+h1 {
+  background: red;
+  padding: 0.25em 0.5em;
+}
+
+main {
+  display: flex;
+}
+
+section {
+  flex-grow: 1;
+  outline: 1px solid red;
+  margin: 1em 0.5em;
+  padding: 1em;
+}
+
+section:first-of-type {
+  margin-left: 1em;
+}
+
+section:last-of-type {
+  margin-right: 1em;
+}
