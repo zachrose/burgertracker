@@ -23,9 +23,11 @@ type Guest
   = NormalGuest String
   | CompedGuest String
 
+type alias PriceInCents = Int
+
 type alias MenuItem =
   { name: String
-  , priceInCents: Int
+  , price: PriceInCents
   }
 
 type alias Request =
@@ -46,7 +48,8 @@ type alias Order =
   }
 
 type alias Model =
-  { guests : List Guest
+  { menuItems: List MenuItem
+  , guests : List Guest
   , newGuestComped : Bool
   , newGuestName : String
   , newGuestSubmitted : Bool
@@ -56,7 +59,7 @@ type alias Model =
 
 -- init
 
-hamburger    = MenuItem "Hambrger"      100
+hamburger    = MenuItem "Hamburger"     100
 cheeseburger = MenuItem "Cheeseburger"  149
 fries        = MenuItem "Fries"         125
 soda         = MenuItem "Soda"          199
@@ -76,7 +79,7 @@ requests : List Request
 requests = [ Request ben cheeseburger, Request charlie hamburger ]
 
 model : Model
-model = Model guests False "" False [] requests
+model = Model menuItems guests False "" False [] requests
 
 init = (model, Cmd.none)
 
@@ -228,6 +231,13 @@ menuItemButton guest menuItem =
     Html.button [E.onClick ( AddRequest guest menuItem)] [ Html.text ("request " ++ menuItem.name )]
   ]
 
+viewMenuItem : MenuItem -> Html.Html Msg
+viewMenuItem menuItem =
+  Html.li [] [
+    Html.text (menuItem.name ++ " "),
+    Html.span [A.class "price"] [ Html.text (format menuItem.price )]
+  ]
+
 viewGuest : Guest -> Html.Html Msg
 viewGuest guest =
   Html.li []
@@ -240,6 +250,14 @@ filterOrderBy : OrderStatus -> List Order -> List Order
 filterOrderBy status orders =
   List.filter (\o -> o.status == status) orders
 
+format : PriceInCents -> String
+format price =
+  let
+    dollars = toString (price // 100)
+    cents = String.padLeft 2 '0' (toString (rem price 100))
+  in
+    "$" ++ dollars ++ "." ++ cents
+
 view : Model -> Html.Html Msg
 view model =
   Html.div []
@@ -248,7 +266,11 @@ view model =
       [ Html.h1 [] [ Html.text "Bottomless Burgers" ]
       ]
     , Html.main_ []
-      [ Html.section [ A.id "guests" ]
+      [ Html.section [ A.id "menu" ]
+        [ Html.h2 [] [ Html.text "Menu" ]
+        , Html.ul [] (List.map viewMenuItem model.menuItems)
+        ]
+      , Html.section [ A.id "guests" ]
         [ Html.h2 [] [ Html.text "Guests" ]
         , Html.div []
           [ Html.h3 [] [ Html.text "Add Guest" ]

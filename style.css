@@ -22,6 +22,10 @@ section {
   padding: 1em;
 }
 
+section#menu {
+  flex-grow: 3
+}
+
 section:first-of-type {
   margin-left: 1em;
 }
