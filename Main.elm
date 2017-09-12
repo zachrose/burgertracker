@@ -102,7 +102,6 @@ type Msg
   | AdvanceOrder Order
   | NewGuestName String
   | NewGuestComped
-  | DeleteGuest Guest
   | OnTime Time.Time
 
 getTime =
@@ -155,8 +154,6 @@ update msg model =
       ({ model | newGuestComped = True }, Cmd.none )
     AddRequest guest menuItem ->
       ({ model | requests = Request guest menuItem :: model.requests }, Cmd.none )
-    DeleteGuest guest ->
-      ({ model | guests = without (\g -> g == guest) model.guests }, Cmd.none )
     OnTime time ->
       ( model, Cmd.none )
 
@@ -248,7 +245,6 @@ viewGuest : Guest -> Html.Html Msg
 viewGuest guest =
   Html.li []
     [ Html.h4 [] [ Html.text (compedText guest )]
-    , Html.button [ E.onClick ( DeleteGuest guest ) ] [ Html.text " delete" ]
     , Html.ul [] (List.map (menuItemButton guest) menuItems)
     ]
 
