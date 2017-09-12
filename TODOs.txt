@@ -1,0 +1,6 @@
+add menu item
+adjust sales tax
+mobile view
+delete request
+not counting comped users as revenue or expense
+undo
