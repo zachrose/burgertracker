@@ -54,6 +54,8 @@ type alias Model =
   , newGuestComped : Bool
   , newGuestName : String
   , newGuestSubmitted : Bool
+  , newMenuItemName : String
+  , newMenuItemPrice : PriceInCents
   , orders : List Order
   , requests : List Request
   }
@@ -77,7 +79,7 @@ taxRate : Float
 taxRate = 0.0925
 
 model : Model
-model = Model menuItems taxRate guests False "" False [] requests
+model = Model menuItems taxRate guests False "" False "" 0 [] requests
 
 init = (model, Cmd.none)
 
@@ -90,12 +92,15 @@ subscriptions model =
 -- update
 
 type Msg
-  = SubmitGuest 
-  | AddRequest Guest MenuItem
+  = AddRequest Guest MenuItem
   | NewOrder
   | AdvanceOrder Order
   | NewGuestName String
   | NewGuestComped
+  | SubmitGuest 
+  | NewMenuItemName String
+  | NewMenuItemPrice String
+  | SubmitMenuItem
   | OnTime Time.Time
 
 getTime =
@@ -107,19 +112,6 @@ without predicate list =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
-    SubmitGuest ->
-      let
-        newGuestType = if model.newGuestComped then CompedGuest else NormalGuest
-        newModel = { model | newGuestSubmitted = True }
-        newGuest = newGuestType model.newGuestName
-      in
-        if validateGuest newGuest then
-          ({ model |
-              guests = newGuest :: model.guests,
-              newGuestName = ""
-          }, Cmd.none)
-        else
-          (newModel, Cmd.none)
     NewOrder ->
       if List.isEmpty model.requests then
         (model, Cmd.none)
@@ -146,6 +138,42 @@ update msg model =
       ({ model | newGuestName = name }, Cmd.none )
     NewGuestComped ->
       ({ model | newGuestComped = True }, Cmd.none )
+    SubmitGuest ->
+      let
+        newGuestType = if model.newGuestComped then CompedGuest else NormalGuest
+        newModel = { model | newGuestSubmitted = True }
+        newGuest = newGuestType model.newGuestName
+      in
+        if validateGuest newGuest then
+          ({ model |
+              guests = newGuest :: model.guests,
+              newGuestName = ""
+          }, Cmd.none)
+        else
+          (newModel, Cmd.none)
+    NewMenuItemName name ->
+      ({ model | newMenuItemName = name }, Cmd.none )
+    NewMenuItemPrice price ->
+      let
+        priceInCents = Result.toMaybe (String.toInt price)
+      in
+      case priceInCents of
+        Just priceInCents ->
+          ({ model | newMenuItemPrice = priceInCents }, Cmd.none )
+        Nothing ->
+          ({ model | newMenuItemPrice = 0 }, Cmd.none )
+    SubmitMenuItem ->
+      let
+        newMenuItem = MenuItem model.newMenuItemName model.newMenuItemPrice
+      in
+        if validateMenuItem newMenuItem then
+          ({ model |
+            menuItems = newMenuItem :: model.menuItems,
+            newMenuItemName = "",
+            newMenuItemPrice = 0
+          }, Cmd.none)
+        else
+          ( model , Cmd.none )
     AddRequest guest menuItem ->
       ({ model | requests = Request guest menuItem :: model.requests }, Cmd.none )
     OnTime time ->
@@ -158,6 +186,14 @@ validateGuest : Guest -> Bool
 validateGuest guest =
   True
   -- not ( String.isEmpty guest )
+
+validateMenuItem: MenuItem -> Bool
+validateMenuItem menuItem =
+  True
+
+menuItemValidationMessage : Model -> String
+menuItemValidationMessage model =
+  ""
 
 guestValidationMessage : Model -> String
 guestValidationMessage model =
@@ -241,8 +277,8 @@ viewMenuItem menuItem =
     Html.span [A.class "price"] [ Html.text (format menuItem.price )]
   ]
 
-viewGuest : Guest -> Html.Html Msg
-viewGuest guest =
+viewGuest : List MenuItem -> Guest -> Html.Html Msg
+viewGuest menuItems guest =
   Html.li []
     [ Html.h4 [] [ Html.text (compedText guest )]
     , Html.ul [] (List.map (menuItemButton guest) menuItems)
@@ -298,6 +334,26 @@ profitableClass model =
     Just True -> "profitable"
     Just False -> "not-profitable"
 
+addGuestView : Model -> Html.Html Msg
+addGuestView model =
+  Html.div []
+    [ Html.h3 [] [ Html.text "Add Guest" ]
+    , Html.p [ A.class "error" ] [ Html.text ( guestValidationMessage model ) ]
+    , Html.input [ E.onInput NewGuestName, A.type_ "text", A.value model.newGuestName ] []
+    , Html.input [ E.onClick NewGuestComped, A.type_ "checkbox" ] []
+    , Html.button [ E.onClick SubmitGuest ] [ Html.text "submit" ]
+    ]
+
+addMenuItemView : Model -> Html.Html Msg
+addMenuItemView model =
+  Html.div []
+    [ Html.h3 [] [ Html.text "Add Menu Item" ]
+    , Html.p [ A.class "error" ] [ Html.text ( menuItemValidationMessage model ) ]
+    , Html.input [ E.onInput NewMenuItemName, A.type_ "text", A.value model.newMenuItemName ] []
+    , Html.input [ E.onInput NewMenuItemPrice, A.type_ "number", A.value (toString model.newMenuItemPrice ) ] []
+    , Html.button [ E.onClick SubmitMenuItem] [ Html.text "submit" ]
+    ]
+
 view : Model -> Html.Html Msg
 view model =
   Html.body [ A.class (profitableClass model) ]
@@ -311,19 +367,14 @@ view model =
       [ Html.section [ A.id "menu-and-taxes" ]
         [ Html.h2 [] [ Html.text "Menu" ]
         , Html.ul [] (List.map viewMenuItem model.menuItems)
+        , addMenuItemView model
         , Html.h2 [] [ Html.text "Tax" ]
         , Html.p [] [ Html.text (toString model.salesTax) ]
         ]
       , Html.section [ A.id "guests" ]
         [ Html.h2 [] [ Html.text "Guests" ]
-        , Html.div []
-          [ Html.h3 [] [ Html.text "Add Guest" ]
-          , Html.p [ A.class "error" ] [ Html.text ( guestValidationMessage model ) ]
-          , Html.input [ E.onInput NewGuestName, A.type_ "text", A.value model.newGuestName ] []
-          , Html.input [ E.onClick NewGuestComped, A.type_ "checkbox" ] []
-          , Html.button [ E.onClick SubmitGuest ] [ Html.text "submit" ]
-          ]
-        , Html.ul [] (List.map viewGuest model.guests)
+        , addGuestView model
+        , Html.ul [] (List.map (viewGuest model.menuItems )model.guests)
         ]
       , Html.section [ A.id "requests" ]
         [ Html.h2 [] [ Html.text "Requests" ]
