@@ -10,6 +10,7 @@ body.profitable h1 { background: green; }
 body.profitable section { border-color: green; }
 body.not-profitable h1 { background: red; }
 body.not-profitable section { border-color: red; }
+body.neither h1 { padding: 0em 0; }
 
 h1 {
   padding: 0.25em 0.5em;

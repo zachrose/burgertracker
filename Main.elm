@@ -67,17 +67,11 @@ soda         = MenuItem "Soda"          199
 
 menuItems = [ hamburger, cheeseburger, fries, soda ]
 
-ben : Guest
-ben = NormalGuest "Ben"
-
-charlie : Guest
-charlie = CompedGuest "Charlie"
-
 guests : List Guest
-guests = [ ben, charlie ]
+guests = [ ]
 
 requests : List Request
-requests = [ Request ben cheeseburger, Request charlie hamburger ]
+requests = [ ]
 
 taxRate : Float
 taxRate = 0.0925
@@ -182,8 +176,14 @@ css path =
 
 viewRequest: Request -> Html.Html Msg
 viewRequest request =
+  let
+    plural = String.endsWith "ies"
+    wants = if plural request.item.name
+      then " wants "
+      else " wants a "
+  in
   Html.li [] [
-    Html.text ( compedText( request.guest ) ++ " wants a " ++ request.item.name )
+    Html.text ( compedText( request.guest ) ++ wants ++ request.item.name )
   ]
 
 nextOrderAction: OrderStatus -> OrderStatus
@@ -282,15 +282,21 @@ revenue : Model -> PriceInCents
 revenue model =
   (List.length model.guests) * 16 * 100
 
-profitable : Model -> Bool
+profitable : Model -> Maybe Bool
 profitable model =
-  revenue model > expenses model
+  if revenue model == 0 && expenses model == 0 then
+    Nothing
+  else if revenue model > expenses model then
+    Just True
+  else
+    Just False
 
 profitableClass : Model -> String
 profitableClass model =
   case profitable model of
-    True -> "profitable"
-    False -> "not-profitable"
+    Nothing -> "neither"
+    Just True -> "profitable"
+    Just False -> "not-profitable"
 
 view : Model -> Html.Html Msg
 view model =
