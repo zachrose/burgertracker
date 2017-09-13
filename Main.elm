@@ -101,6 +101,7 @@ type Msg
   | SubmitGuest 
   | NewMenuItemName String
   | NewMenuItemPrice String
+  | RemoveMenuItem MenuItem
   | SubmitMenuItem
   | OnTime Time.Time
 
@@ -175,6 +176,15 @@ update msg model =
           }, Cmd.none)
         else
           ( model , Cmd.none )
+    RemoveMenuItem menuItem ->
+      let
+        isRequest = (\mi -> mi == menuItem)
+        partitioned = List.partition isRequest model.menuItems
+        matches = Tuple.first partitioned
+        others = Tuple.second partitioned
+        newMenuItems = List.append (List.drop 1 matches) others
+      in
+        ({ model | menuItems = newMenuItems }, Cmd.none)
     AddRequest guest menuItem ->
       ({ model | requests = Request guest menuItem :: model.requests }, Cmd.none )
     CancelRequest request ->
@@ -185,7 +195,7 @@ update msg model =
         others = Tuple.second partitioned
         newRequests = List.append (List.drop 1 matches) others
       in
-      ({ model | requests = newRequests }, Cmd.none)
+        ({ model | requests = newRequests }, Cmd.none)
     OnTime time ->
       ( model, Cmd.none )
 
@@ -282,9 +292,10 @@ menuItemButton guest menuItem =
 
 viewMenuItem : MenuItem -> Html.Html Msg
 viewMenuItem menuItem =
-  Html.li [] [
-    Html.text (menuItem.name ++ " "),
-    Html.span [A.class "price"] [ Html.text (format menuItem.price )]
+  Html.li []
+  [ Html.text (menuItem.name ++ " ")
+  , Html.span [A.class "price"] [ Html.text (format menuItem.price )]
+  , Html.button [ E.onClick (RemoveMenuItem menuItem) ] [ Html.text "remove" ]
   ]
 
 viewGuest : List MenuItem -> Guest -> Html.Html Msg
