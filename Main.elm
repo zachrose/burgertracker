@@ -93,6 +93,7 @@ subscriptions model =
 
 type Msg
   = AddRequest Guest MenuItem
+  | CancelRequest Request
   | NewOrder
   | AdvanceOrder Order
   | NewGuestName String
@@ -176,6 +177,15 @@ update msg model =
           ( model , Cmd.none )
     AddRequest guest menuItem ->
       ({ model | requests = Request guest menuItem :: model.requests }, Cmd.none )
+    CancelRequest request ->
+      let
+        isRequest = (\r -> r == request)
+        partitioned = List.partition isRequest model.requests
+        matches = Tuple.first partitioned
+        others = Tuple.second partitioned
+        newRequests = List.append (List.drop 1 matches) others
+      in
+      ({ model | requests = newRequests }, Cmd.none)
     OnTime time ->
       ( model, Cmd.none )
 
@@ -210,16 +220,23 @@ css : String -> Html.Html msg
 css path =
   Html.node "link" [ A.rel "stylesheet", A.href path ] []
 
+wants : String -> String
+wants thing =
+  if String.endsWith "ies" thing
+    then " wants "
+    else " wants a "
+
 viewRequest: Request -> Html.Html Msg
 viewRequest request =
-  let
-    plural = String.endsWith "ies"
-    wants = if plural request.item.name
-      then " wants "
-      else " wants a "
-  in
+  Html.li []
+  [ Html.text ( compedText( request.guest ) ++ (wants request.item.name) ++ request.item.name )
+  , Html.button [ E.onClick (CancelRequest request) ] [ Html.text "cancel" ]
+  ]
+
+viewOrderRequest: Request -> Html.Html Msg
+viewOrderRequest request =
   Html.li [] [
-    Html.text ( compedText( request.guest ) ++ wants ++ request.item.name )
+    Html.text ( compedText( request.guest ) ++ (wants request.item.name) ++ request.item.name )
   ]
 
 nextOrderAction: OrderStatus -> OrderStatus
@@ -244,17 +261,10 @@ viewOrder order =
       _ -> (Html.button [ E.onClick (AdvanceOrder order )] [ Html.text (orderActionString order.status) ])
   in
     Html.li []
-    [ Html.ul [] (List.map viewRequest order.requests)
+    [ Html.ul [] (List.map viewOrderRequest order.requests)
     , nextActionEl
     , Html.p [] [ Html.text (format (orderCost order ) ) ]
     ]
-
-
-viewOrderRequest: Request -> Html.Html Msg
-viewOrderRequest request =
-  Html.li [] [
-    Html.text "foo"
-  ]
 
 compedText : Guest -> String
 compedText guest =
