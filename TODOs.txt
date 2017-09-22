@@ -1,6 +1,19 @@
-add menu item
-adjust sales tax
-mobile view
-delete request
+backlog:
+timestamps
 not counting comped users as revenue or expense
 undo
+
+ugh:
+adjust sales tax -- difficult, feedback loop with input and */ 100
+mobile view -- hard because elm-reactor/elm-html don't deal with anything outside <body>
+
+unprioritized:
+form labels
+menu item validation
+user validation
+
+done:
+memo field
+delete menuItem
+add menu item
+delete request

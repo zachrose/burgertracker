@@ -1,5 +1,4 @@
 module Main exposing (..)
-
 import Html
 import Task
 import Time
@@ -35,6 +34,8 @@ type alias Request =
   , item: MenuItem
   }
 
+type alias Memo = String
+
 type OrderStatus
   = Open
   | Ordered
@@ -58,6 +59,8 @@ type alias Model =
   , newMenuItemPrice : PriceInCents
   , orders : List Order
   , requests : List Request
+  , workingMemo : String
+  , memos : List Memo
   }
 
 -- init
@@ -79,7 +82,7 @@ taxRate : Float
 taxRate = 0.0925
 
 model : Model
-model = Model menuItems taxRate guests False "" False "" 0 [] requests
+model = Model menuItems taxRate guests False "" False "" 0 [] requests "" []
 
 init = (model, Cmd.none)
 
@@ -103,6 +106,10 @@ type Msg
   | NewMenuItemPrice String
   | RemoveMenuItem MenuItem
   | SubmitMenuItem
+  | NewWorkingMemo String
+  | NewMemo Memo
+  | SubmitMemo
+  | DeleteMemo Memo
   | OnTime Time.Time
 
 getTime =
@@ -176,6 +183,13 @@ update msg model =
           }, Cmd.none)
         else
           ( model , Cmd.none )
+    SubmitMemo ->
+      let
+        newMemo = model.workingMemo
+      in
+          ({ model |
+            memos = newMemo :: model.memos
+          }, Cmd.none)
     RemoveMenuItem menuItem ->
       let
         isRequest = (\mi -> mi == menuItem)
@@ -196,6 +210,19 @@ update msg model =
         newRequests = List.append (List.drop 1 matches) others
       in
         ({ model | requests = newRequests }, Cmd.none)
+    NewMemo memo ->
+        ({ model | memos = memo :: model.memos }, Cmd.none)
+    NewWorkingMemo memo ->
+        ({ model | workingMemo = memo }, Cmd.none)
+    DeleteMemo memo ->
+      let
+        isMemo = (\m -> m == memo)
+        partitioned = List.partition isMemo model.memos
+        matches = Tuple.first partitioned
+        others = Tuple.second partitioned
+        newMemos = List.append (List.drop 1 matches) others
+      in
+        ({ model | memos = newMemos }, Cmd.none)
     OnTime time ->
       ( model, Cmd.none )
 
@@ -375,6 +402,22 @@ addMenuItemView model =
     , Html.button [ E.onClick SubmitMenuItem] [ Html.text "submit" ]
     ]
 
+addMemoView: Html.Html Msg
+addMemoView =
+  Html.div []
+    [ Html.h3 [] [ Html.text "Add Memo" ]
+    , Html.input [ E.onInput NewWorkingMemo, A.type_ "text", A.value model.workingMemo ] []
+    , Html.button [ E.onClick SubmitMemo ] [ Html.text "submit" ]
+    ]
+
+viewMemo : Memo -> Html.Html Msg
+viewMemo memo =
+  Html.li []
+    [
+    Html.text memo
+    ]
+
+
 view : Model -> Html.Html Msg
 view model =
   Html.body [ A.class (profitableClass model) ]
@@ -397,10 +440,13 @@ view model =
         , addGuestView model
         , Html.ul [] (List.map (viewGuest model.menuItems )model.guests)
         ]
-      , Html.section [ A.id "requests" ]
+      , Html.section [ A.id "requests-and-memos" ]
         [ Html.h2 [] [ Html.text "Requests" ]
         , Html.ul [] (List.map viewRequest model.requests)
         , Html.button [ E.onClick NewOrder ] [ Html.text "move to new order" ]
+        , Html.h2 [] [ Html.text "Memos" ]
+        , Html.ul [] ( List.map viewMemo model.memos )
+        , addMemoView
         ]
       , Html.section [ A.id "orders" ]
         [ Html.div [ A.id "open-orders" ]
