@@ -95,17 +95,22 @@ subscriptions model =
 -- update
 
 type Msg
-  = AddRequest Guest MenuItem
-  | CancelRequest Request
-  | NewOrder
-  | AdvanceOrder Order
-  | NewGuestName String
+  -- guests
+  = NewGuestName String
   | NewGuestComped
   | SubmitGuest 
+  -- menu items
   | NewMenuItemName String
   | NewMenuItemPrice String
   | RemoveMenuItem MenuItem
   | SubmitMenuItem
+  -- requests
+  | AddRequest Guest MenuItem
+  | CancelRequest Request
+  -- orders
+  | NewOrder
+  | AdvanceOrder Order
+  -- memos
   | NewWorkingMemo String
   | NewMemo Memo
   | SubmitMemo
