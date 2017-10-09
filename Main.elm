@@ -1,7 +1,7 @@
 module Main exposing (..)
 import Html
 import Task
-import Time
+import Time exposing (Time)
 import Html.Attributes as A
 import Html.Events as E
 
@@ -11,9 +11,9 @@ import Array
 main =
   Html.program
     { init = init
+    , update = timedUpdate
+    , view = timedView
     , subscriptions = subscriptions
-    , update = update
-    , view = view
     }
 
 -- model
@@ -88,7 +88,7 @@ init = (model, Cmd.none)
 
 -- subscriptions
 
-subscriptions : Model -> Sub Msg
+subscriptions : Model -> Sub TimeMsg
 subscriptions model =
   Sub.none
 
@@ -117,14 +117,28 @@ type Msg
   | DeleteMemo Memo
   | OnTime Time.Time
 
-getTime =
-  Task.perform OnTime Time.now
+type TimeMsg
+    = GetTimeAndThen Msg
+    | GotTime Msg Time
 
 without predicate list =
   ( Tuple.second ( List.partition predicate list ) )
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+timedUpdate : TimeMsg -> Model -> (Model, Cmd TimeMsg)
+timedUpdate msg model =
+    case msg of
+        GetTimeAndThen wrappedMsg ->
+            ( model, Task.perform (GotTime wrappedMsg) Time.now )
+
+        GotTime wrappedMsg time ->
+            let
+                ( newModel, cmd ) =
+                    update wrappedMsg time model
+            in
+                ( newModel, Cmd.map GetTimeAndThen cmd )
+
+update : Msg -> Time -> Model -> (Model, Cmd Msg)
+update msg time model =
   case msg of
     NewOrder ->
       if List.isEmpty model.requests then
@@ -421,6 +435,11 @@ viewMemo memo =
     [
     Html.text memo
     ]
+
+
+timedView : Model -> Html.Html TimeMsg
+timedView model =
+    Html.map GetTimeAndThen (view model)
 
 
 view : Model -> Html.Html Msg
