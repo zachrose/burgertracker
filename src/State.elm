@@ -3,6 +3,9 @@ module State exposing (..)
 import Task
 import Time exposing (Time)
 import Types exposing (..)
+import Guest.Types
+import MenuItem.Types exposing (MenuItem)
+import Request.Types exposing (Request)
 -- init
 
 hamburger    = MenuItem "Hamburger"     100
@@ -12,7 +15,7 @@ soda         = MenuItem "Soda"          199
 
 menuItems = [ hamburger, cheeseburger, fries, soda ]
 
-guests : List Guest
+guests : List Guest.Types.Guest
 guests = [ ]
 
 requests : List Request
@@ -41,7 +44,7 @@ nextOrderAction orderStatus =
     Ordered -> Served
     Served -> Served
 
-validateGuest : Guest -> Bool
+validateGuest : Guest.Types.Guest -> Bool
 validateGuest guest =
   True
   -- not ( String.isEmpty guest )
@@ -97,7 +100,7 @@ update msg time model =
       ({ model | newGuestComped = True }, Cmd.none )
     SubmitGuest ->
       let
-        newGuestType = if model.newGuestComped then CompedGuest else NormalGuest
+        newGuestType = if model.newGuestComped then Guest.Types.CompedGuest else Guest.Types.NormalGuest
         newModel = { model | newGuestSubmitted = True }
         newGuest = newGuestType model.newGuestName
       in

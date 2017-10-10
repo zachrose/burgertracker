@@ -1,21 +1,10 @@
 module Types exposing (..)
 import Time exposing (Time)
 
-type Guest
-  = NormalGuest String
-  | CompedGuest String
+import Guest.Types
+import MenuItem.Types
+import Request.Types
 
-type alias PriceInCents = Int
-
-type alias MenuItem =
-  { name: String
-  , price: PriceInCents
-  }
-
-type alias Request =
-  { guest: Guest
-  , item: MenuItem
-  }
 
 type alias Memo = String
 
@@ -25,21 +14,21 @@ type OrderStatus
   | Served
 
 type alias Order =
-  { requests: List Request
+  { requests: List Request.Types.Request
   , status: OrderStatus
   }
 
 type alias Model =
-  { menuItems: List MenuItem
+  { menuItems: List MenuItem.Types.MenuItem
   , salesTax: Float
-  , guests : List Guest
+  , guests : List Guest.Types.Guest
   , newGuestComped : Bool
   , newGuestName : String
   , newGuestSubmitted : Bool
   , newMenuItemName : String
-  , newMenuItemPrice : PriceInCents
+  , newMenuItemPrice : MenuItem.Types.PriceInCents
   , orders : List Order
-  , requests : List Request
+  , requests : List Request.Types.Request
   , workingMemo : String
   , memos : List Memo
   }
@@ -52,11 +41,11 @@ type Msg
   -- menu items
   | NewMenuItemName String
   | NewMenuItemPrice String
-  | RemoveMenuItem MenuItem
+  | RemoveMenuItem MenuItem.Types.MenuItem
   | SubmitMenuItem
   -- requests
-  | AddRequest Guest MenuItem
-  | CancelRequest Request
+  | AddRequest Guest.Types.Guest MenuItem.Types.MenuItem
+  | CancelRequest Request.Types.Request
   -- orders
   | NewOrder
   | AdvanceOrder Order

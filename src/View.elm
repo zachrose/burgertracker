@@ -6,43 +6,17 @@ import Html
 import Html.Attributes as A
 import Html.Events as E
 
-menuItemValidationMessage : Model -> String
-menuItemValidationMessage model =
-  ""
-
-guestValidationMessage : Model -> String
-guestValidationMessage model =
-  let
-    guestIsValid = validateGuest (NormalGuest model.newGuestName)
-    untouched = not model.newGuestSubmitted
-  in
-    if guestIsValid || untouched then
-      ""
-    else
-      "Guest name cannot be empty"
+import Guest.Types
+import MenuItem.Types exposing (MenuItem, PriceInCents)
+import Request.Types exposing (Request)
+import Guest.View exposing(..)
+import MenuItem.View exposing (viewMenuItem, addMenuItemView)
+import Request.View exposing (..)
 
 css : String -> Html.Html msg
 css path =
   Html.node "link" [ A.rel "stylesheet", A.href path ] []
 
-wants : String -> String
-wants thing =
-  if String.endsWith "ies" thing
-    then " wants "
-    else " wants a "
-
-viewRequest: Request -> Html.Html Msg
-viewRequest request =
-  Html.li []
-  [ Html.text ( compedText( request.guest ) ++ (wants request.item.name) ++ request.item.name )
-  , Html.button [ E.onClick (CancelRequest request) ] [ Html.text "cancel" ]
-  ]
-
-viewOrderRequest: Request -> Html.Html Msg
-viewOrderRequest request =
-  Html.li [] [
-    Html.text ( compedText( request.guest ) ++ (wants request.item.name) ++ request.item.name )
-  ]
 
 orderActionString : OrderStatus -> String
 orderActionString orderStatus =
@@ -62,35 +36,6 @@ viewOrder order =
     [ Html.ul [] (List.map viewOrderRequest order.requests)
     , nextActionEl
     , Html.p [] [ Html.text (format (orderCost order ) ) ]
-    ]
-
-compedText : Guest -> String
-compedText guest =
-  case guest of
-    CompedGuest guest ->
-      guest ++ "*"
-    NormalGuest guest ->
-      guest
-
-menuItemButton : Guest -> MenuItem -> Html.Html Msg
-menuItemButton guest menuItem =
-  Html.li [] [
-    Html.button [E.onClick ( AddRequest guest menuItem)] [ Html.text ("request " ++ menuItem.name )]
-  ]
-
-viewMenuItem : MenuItem -> Html.Html Msg
-viewMenuItem menuItem =
-  Html.li []
-  [ Html.text (menuItem.name ++ " ")
-  , Html.span [A.class "price"] [ Html.text (format menuItem.price )]
-  , Html.button [ E.onClick (RemoveMenuItem menuItem) ] [ Html.text "remove" ]
-  ]
-
-viewGuest : List MenuItem -> Guest -> Html.Html Msg
-viewGuest menuItems guest =
-  Html.li []
-    [ Html.h4 [] [ Html.text (compedText guest )]
-    , Html.ul [] (List.map (menuItemButton guest) menuItems)
     ]
 
 filterOrderBy : OrderStatus -> List Types.Order -> List Types.Order
@@ -143,25 +88,6 @@ profitableClass model =
     Just True -> "profitable"
     Just False -> "not-profitable"
 
-addGuestView : Model -> Html.Html Msg
-addGuestView model =
-  Html.div []
-    [ Html.h3 [] [ Html.text "Add Guest" ]
-    , Html.p [ A.class "error" ] [ Html.text ( guestValidationMessage model ) ]
-    , Html.input [ E.onInput NewGuestName, A.type_ "text", A.value model.newGuestName ] []
-    , Html.input [ E.onClick NewGuestComped, A.type_ "checkbox" ] []
-    , Html.button [ E.onClick SubmitGuest ] [ Html.text "submit" ]
-    ]
-
-addMenuItemView : Model -> Html.Html Msg
-addMenuItemView model =
-  Html.div []
-    [ Html.h3 [] [ Html.text "Add Menu Item" ]
-    , Html.p [ A.class "error" ] [ Html.text ( menuItemValidationMessage model ) ]
-    , Html.input [ E.onInput NewMenuItemName, A.type_ "text", A.value model.newMenuItemName ] []
-    , Html.input [ E.onInput NewMenuItemPrice, A.type_ "number", A.value (toString model.newMenuItemPrice ) ] []
-    , Html.button [ E.onClick SubmitMenuItem] [ Html.text "submit" ]
-    ]
 
 addMemoView: Memo -> Html.Html Msg
 addMemoView workingMemo =
