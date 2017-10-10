@@ -1,0 +1,230 @@
+module View exposing (..)
+
+import Types exposing (..)
+import State exposing (validateGuest)
+import Html
+import Html.Attributes as A
+import Html.Events as E
+
+menuItemValidationMessage : Model -> String
+menuItemValidationMessage model =
+  ""
+
+guestValidationMessage : Model -> String
+guestValidationMessage model =
+  let
+    guestIsValid = validateGuest (NormalGuest model.newGuestName)
+    untouched = not model.newGuestSubmitted
+  in
+    if guestIsValid || untouched then
+      ""
+    else
+      "Guest name cannot be empty"
+
+css : String -> Html.Html msg
+css path =
+  Html.node "link" [ A.rel "stylesheet", A.href path ] []
+
+wants : String -> String
+wants thing =
+  if String.endsWith "ies" thing
+    then " wants "
+    else " wants a "
+
+viewRequest: Request -> Html.Html Msg
+viewRequest request =
+  Html.li []
+  [ Html.text ( compedText( request.guest ) ++ (wants request.item.name) ++ request.item.name )
+  , Html.button [ E.onClick (CancelRequest request) ] [ Html.text "cancel" ]
+  ]
+
+viewOrderRequest: Request -> Html.Html Msg
+viewOrderRequest request =
+  Html.li [] [
+    Html.text ( compedText( request.guest ) ++ (wants request.item.name) ++ request.item.name )
+  ]
+
+orderActionString : OrderStatus -> String
+orderActionString orderStatus =
+  case orderStatus of
+    Open -> "mark as ordered"
+    Ordered -> "mark as served"
+    Served -> "serve"
+
+viewOrder: Types.Order -> Html.Html Msg
+viewOrder order =
+  let
+    nextActionEl = case order.status of
+      Served -> (Html.p [] [Html.text ""])
+      _ -> (Html.button [ E.onClick (AdvanceOrder order )] [ Html.text (orderActionString order.status) ])
+  in
+    Html.li []
+    [ Html.ul [] (List.map viewOrderRequest order.requests)
+    , nextActionEl
+    , Html.p [] [ Html.text (format (orderCost order ) ) ]
+    ]
+
+compedText : Guest -> String
+compedText guest =
+  case guest of
+    CompedGuest guest ->
+      guest ++ "*"
+    NormalGuest guest ->
+      guest
+
+menuItemButton : Guest -> MenuItem -> Html.Html Msg
+menuItemButton guest menuItem =
+  Html.li [] [
+    Html.button [E.onClick ( AddRequest guest menuItem)] [ Html.text ("request " ++ menuItem.name )]
+  ]
+
+viewMenuItem : MenuItem -> Html.Html Msg
+viewMenuItem menuItem =
+  Html.li []
+  [ Html.text (menuItem.name ++ " ")
+  , Html.span [A.class "price"] [ Html.text (format menuItem.price )]
+  , Html.button [ E.onClick (RemoveMenuItem menuItem) ] [ Html.text "remove" ]
+  ]
+
+viewGuest : List MenuItem -> Guest -> Html.Html Msg
+viewGuest menuItems guest =
+  Html.li []
+    [ Html.h4 [] [ Html.text (compedText guest )]
+    , Html.ul [] (List.map (menuItemButton guest) menuItems)
+    ]
+
+filterOrderBy : OrderStatus -> List Types.Order -> List Types.Order
+filterOrderBy status orders =
+  List.filter (\o -> o.status == status) orders
+
+format : PriceInCents -> String
+format price =
+  let
+    dollars = toString (price // 100)
+    cents = String.padLeft 2 '0' (toString (rem price 100))
+  in
+    "$" ++ dollars ++ "." ++ cents
+
+orderCost : Types.Order -> PriceInCents
+orderCost order =
+  let
+    requests = order.requests
+    menuItemPrices = List.map (\r -> r.item.price) requests
+  in
+    List.foldr (+) 0 menuItemPrices
+
+expenses : Model -> PriceInCents
+expenses model =
+  let
+    ordersCosts = List.map (\o -> orderCost o) model.orders
+    ordersCost = List.foldr (+) 0 ordersCosts
+    requestsCosts = List.map (\r -> r.item.price) model.requests
+    requestsCost = List.foldr (+) 0 requestsCosts
+  in
+    round ( toFloat ( requestsCost + ordersCost ) * ( 1 + model.salesTax ) )
+
+revenue : Model -> PriceInCents
+revenue model =
+  (List.length model.guests) * 16 * 100
+
+profitable : Model -> Maybe Bool
+profitable model =
+  if revenue model == 0 && expenses model == 0 then
+    Nothing
+  else if revenue model > expenses model then
+    Just True
+  else
+    Just False
+
+profitableClass : Model -> String
+profitableClass model =
+  case profitable model of
+    Nothing -> "neither"
+    Just True -> "profitable"
+    Just False -> "not-profitable"
+
+addGuestView : Model -> Html.Html Msg
+addGuestView model =
+  Html.div []
+    [ Html.h3 [] [ Html.text "Add Guest" ]
+    , Html.p [ A.class "error" ] [ Html.text ( guestValidationMessage model ) ]
+    , Html.input [ E.onInput NewGuestName, A.type_ "text", A.value model.newGuestName ] []
+    , Html.input [ E.onClick NewGuestComped, A.type_ "checkbox" ] []
+    , Html.button [ E.onClick SubmitGuest ] [ Html.text "submit" ]
+    ]
+
+addMenuItemView : Model -> Html.Html Msg
+addMenuItemView model =
+  Html.div []
+    [ Html.h3 [] [ Html.text "Add Menu Item" ]
+    , Html.p [ A.class "error" ] [ Html.text ( menuItemValidationMessage model ) ]
+    , Html.input [ E.onInput NewMenuItemName, A.type_ "text", A.value model.newMenuItemName ] []
+    , Html.input [ E.onInput NewMenuItemPrice, A.type_ "number", A.value (toString model.newMenuItemPrice ) ] []
+    , Html.button [ E.onClick SubmitMenuItem] [ Html.text "submit" ]
+    ]
+
+addMemoView: Memo -> Html.Html Msg
+addMemoView workingMemo =
+  Html.div []
+    [ Html.h3 [] [ Html.text "Add Memo" ]
+    , Html.input [ E.onInput NewWorkingMemo, A.type_ "text", A.value workingMemo ] []
+    , Html.button [ E.onClick SubmitMemo ] [ Html.text "submit" ]
+    ]
+
+viewMemo : Memo -> Html.Html Msg
+viewMemo memo =
+  Html.li []
+    [
+    Html.text memo
+    ]
+
+
+timedView : Model -> Html.Html TimeMsg
+timedView model =
+    Html.map GetTimeAndThen (view model)
+
+
+view : Model -> Html.Html Msg
+view model =
+  Html.body [ A.class (profitableClass model) ]
+    [ css "style.css"
+    , Html.header []
+      [ Html.h1 [] [ Html.text "Bottomless Burgers" ]
+      , Html.p [] [ Html.text ("Revenue " ++ (format (revenue model ) ))]
+      , Html.p [] [ Html.text ("Expenses " ++ (format (expenses model ) ))]
+      ]
+    , Html.main_ []
+      [ Html.section [ A.id "menu-and-taxes" ]
+        [ Html.h2 [] [ Html.text "Menu" ]
+        , Html.ul [] (List.map viewMenuItem model.menuItems)
+        , addMenuItemView model
+        , Html.h2 [] [ Html.text "Tax" ]
+        , Html.p [] [ Html.text (toString model.salesTax) ]
+        ]
+      , Html.section [ A.id "guests" ]
+        [ Html.h2 [] [ Html.text "Guests" ]
+        , addGuestView model
+        , Html.ul [] (List.map (viewGuest model.menuItems )model.guests)
+        ]
+      , Html.section [ A.id "requests-and-memos" ]
+        [ Html.h2 [] [ Html.text "Requests" ]
+        , Html.ul [] (List.map viewRequest model.requests)
+        , Html.button [ E.onClick NewOrder ] [ Html.text "move to new order" ]
+        , Html.h2 [] [ Html.text "Memos" ]
+        , Html.ul [] ( List.map viewMemo model.memos )
+        , addMemoView model.workingMemo
+        ]
+      , Html.section [ A.id "orders" ]
+        [ Html.div [ A.id "open-orders" ]
+          [ Html.h2 [] [ Html.text "Open Orders" ]
+          , Html.ul [] (List.map viewOrder (filterOrderBy Open model.orders)) ]
+        , Html.div [ A.id "ordered-orders" ]
+          [ Html.h2 [] [ Html.text "Ordered Orders" ]
+          , Html.ul [] (List.map viewOrder (filterOrderBy Ordered model.orders)) ]
+        , Html.div [ A.id "served-orders" ]
+          [ Html.h2 [] [ Html.text "Served Orders" ]
+          , Html.ul [] (List.map viewOrder (filterOrderBy Served model.orders)) ]
+        ]
+      ]
+    ]
+
