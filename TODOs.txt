@@ -1,19 +1,31 @@
 backlog:
-timestamps
-not counting comped users as revenue or expense
-undo
+
+  special analytics log capturing intent
+  not counting comped users as revenue or expense
+  undo
 
 ugh:
-adjust sales tax -- difficult, feedback loop with input and */ 100
-mobile view -- hard because elm-reactor/elm-html don't deal with anything outside <body>
+
+  adjust sales tax -- difficult, feedback loop with input and */ 100
+  mobile view -- hard because elm-reactor/elm-html don't deal with anything outside <body>
 
 unprioritized:
-form labels
-menu item validation
-user validation
+
+  form labels
+  menu item validation
+  user validation
+  "cancel" a guest (no revenue, no new requests, cancel unordered items)
+  add memos to requests ("no tomato")
+  remove "open orders"
+  identify sharks and whales
+  print git hash on top of page (or in footer?)
+  soda flavors as high-level concept?
+  sort requests by type, reduce to counts of identical
+  per-guest as pop up (or non-repeating)
+  
 
 done:
-memo field
-delete menuItem
-add menu item
-delete request
+  memo field
+  delete menuItem
+  add menu item
+  delete request
