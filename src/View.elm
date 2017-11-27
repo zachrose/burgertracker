@@ -58,19 +58,33 @@ orderCost order =
   in
     List.foldr (+) 0 menuItemPrices
 
+requestCost : Request -> PriceInCents
+requestCost request =
+  request.item.price
+
 expenses : Model -> PriceInCents
 expenses model =
   let
-    ordersCosts = List.map (\o -> orderCost o) model.orders
-    ordersCost = List.foldr (+) 0 ordersCosts
-    requestsCosts = List.map (\r -> r.item.price) model.requests
-    requestsCost = List.foldr (+) 0 requestsCosts
+    ordersCost = List.sum (List.map orderCost model.orders)
+    requestsCost = List.sum (List.map requestCost model.requests)
   in
     round ( toFloat ( requestsCost + ordersCost ) * ( 1 + model.salesTax ) )
 
+guestRevenue : Guest.Types.Guest -> PriceInCents
+guestRevenue guest =
+  case guest of
+    Guest.Types.CompedGuest _ ->
+      0
+    Guest.Types.NormalGuest _ ->
+      16 * 100
+
 revenue : Model -> PriceInCents
 revenue model =
-  (List.length model.guests) * 16 * 100
+  let
+    guestsRev = List.map guestRevenue model.guests
+  in
+    (List.foldr (+) 0 guestsRev)
+  -- (List.length model.guests) * 16 * 100
 
 profitable : Model -> Maybe Bool
 profitable model =

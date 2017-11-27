@@ -1,31 +1,36 @@
 backlog:
 
   special analytics log capturing intent
-  not counting comped users as revenue or expense
+  sort requests by type, reduce to counts of identical items
+    - how does this work at Fuddruckers where cheese is a separate lineitem?
+    - ideal output: [ Guthrie burger no onions, Guthrie cheese, Tony burger, Tony cheese, Guthrie soda, Tony soda ]
+    - implies that cheese is a special type
   undo
+    - how does this work analytics log?
+  guest-centric memos, working towards a "guest profile"
 
 ugh:
 
   mobile view -- hard because elm-reactor/elm-html don't deal with anything outside <body>
 
 unprioritized:
-
   form labels
   menu item validation
   user validation
   "cancel" a guest (no revenue, no new requests, cancel unordered items)
-  add memos to requests ("no tomato")
   remove "open orders"
   identify sharks and whales
   print git hash on top of page (or in footer?)
   soda flavors as high-level concept?
-  sort requests by type, reduce to counts of identical
   per-guest as pop up (or non-repeating)
-  
 
 done:
+  not counting comped users as revenue ~or expense~ (postponing expense)
   adjust sales tax -- difficult, feedback loop with input and */ 100
   memo field
   delete menuItem
   add menu item
   delete request
+
+wontfix:
+  add memos to requests ("no tomato") (memos belong on user above all else)
