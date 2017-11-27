@@ -25,7 +25,7 @@ taxRate : Float
 taxRate = 0.0925
 
 model : Model
-model = Model menuItems taxRate guests False "" False "" 0 [] requests "" []
+model = Model menuItems (toString taxRate) taxRate guests False "" False "" 0 [] requests "" []
 
 init = (model, Cmd.none)
 
@@ -134,6 +134,17 @@ update msg time model =
           }, Cmd.none)
         else
           ( model , Cmd.none )
+    NewTax tax ->
+      ({ model | newSalesTax = tax }, Cmd.none)
+    SubmitTax ->
+      let
+        parsedTax = Result.toMaybe (String.toFloat model.newSalesTax)
+      in
+        case parsedTax of
+          Just tax ->
+            ({ model | salesTax = tax}, Cmd.none)
+          Nothing ->
+            (model, Cmd.none)
     SubmitMemo ->
       let
         newMemo = model.workingMemo

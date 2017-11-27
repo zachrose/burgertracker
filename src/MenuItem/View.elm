@@ -43,3 +43,12 @@ addMenuItemView model =
     , Html.input [ E.onInput NewMenuItemPrice, A.type_ "number", A.value (toString model.newMenuItemPrice ) ] []
     , Html.button [ E.onClick SubmitMenuItem] [ Html.text "submit" ]
     ]
+
+adjustTaxView : String -> Float -> Html.Html Msg
+adjustTaxView newTax tax =
+  Html.div []
+    [ Html.h3 [] [ Html.text "Adjust Sales Tax" ]
+    , Html.p [ ] [ Html.text "e.g. \"0.095\"" ]
+    , Html.input [ E.onInput NewTax, A.type_ "number", A.value newTax ] []
+    , Html.button [ E.onClick SubmitTax] [ Html.text "submit" ]
+    ]

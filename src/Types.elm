@@ -8,6 +8,8 @@ import Request.Types
 
 type alias Memo = String
 
+type alias Tax = Float
+
 type OrderStatus
   = Open
   | Ordered
@@ -20,7 +22,8 @@ type alias Order =
 
 type alias Model =
   { menuItems: List MenuItem.Types.MenuItem
-  , salesTax: Float
+  , newSalesTax: String
+  , salesTax: Tax
   , guests : List Guest.Types.Guest
   , newGuestComped : Bool
   , newGuestName : String
@@ -43,6 +46,8 @@ type Msg
   | NewMenuItemPrice String
   | RemoveMenuItem MenuItem.Types.MenuItem
   | SubmitMenuItem
+  | NewTax String
+  | SubmitTax
   -- requests
   | AddRequest Guest.Types.Guest MenuItem.Types.MenuItem
   | CancelRequest Request.Types.Request

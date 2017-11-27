@@ -10,7 +10,7 @@ import Guest.Types
 import MenuItem.Types exposing (MenuItem, PriceInCents)
 import Request.Types exposing (Request)
 import Guest.View exposing(..)
-import MenuItem.View exposing (viewMenuItem, addMenuItemView)
+import MenuItem.View exposing (viewMenuItem, addMenuItemView, adjustTaxView)
 import Request.View exposing (..)
 
 css : String -> Html.Html msg
@@ -126,6 +126,7 @@ view model =
         , addMenuItemView model
         , Html.h2 [] [ Html.text "Tax" ]
         , Html.p [] [ Html.text (toString model.salesTax) ]
+        , adjustTaxView model.newSalesTax model.salesTax
         ]
       , Html.section [ A.id "guests" ]
         [ Html.h2 [] [ Html.text "Guests" ]

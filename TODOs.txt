@@ -6,7 +6,6 @@ backlog:
 
 ugh:
 
-  adjust sales tax -- difficult, feedback loop with input and */ 100
   mobile view -- hard because elm-reactor/elm-html don't deal with anything outside <body>
 
 unprioritized:
@@ -25,6 +24,7 @@ unprioritized:
   
 
 done:
+  adjust sales tax -- difficult, feedback loop with input and */ 100
   memo field
   delete menuItem
   add menu item
