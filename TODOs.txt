@@ -18,13 +18,13 @@ unprioritized:
   menu item validation
   user validation
   "cancel" a guest (no revenue, no new requests, cancel unordered items)
-  remove "open orders"
   identify sharks and whales
   print git hash on top of page (or in footer?)
   soda flavors as high-level concept?
   per-guest as pop up (or non-repeating)
 
 done:
+  remove "open orders"
   not counting comped users as revenue ~or expense~ (postponing expense)
   adjust sales tax -- difficult, feedback loop with input and */ 100
   memo field

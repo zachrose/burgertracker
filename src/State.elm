@@ -40,7 +40,6 @@ subscriptions model =
 nextOrderAction: OrderStatus -> OrderStatus
 nextOrderAction orderStatus =
   case orderStatus of
-    Open -> Ordered
     Ordered -> Served
     Served -> Served
 
@@ -80,7 +79,7 @@ update msg time model =
           requests = model.requests
           newOrder =
           { requests = requests
-          , status = Open
+          , status = Ordered
           }
         in
           ({ model |

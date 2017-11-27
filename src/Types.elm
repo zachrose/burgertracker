@@ -11,8 +11,7 @@ type alias Memo = String
 type alias Tax = Float
 
 type OrderStatus
-  = Open
-  | Ordered
+  = Ordered
   | Served
 
 type alias Order =

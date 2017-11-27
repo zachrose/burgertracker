@@ -21,7 +21,6 @@ css path =
 orderActionString : OrderStatus -> String
 orderActionString orderStatus =
   case orderStatus of
-    Open -> "mark as ordered"
     Ordered -> "mark as served"
     Served -> "serve"
 
@@ -150,16 +149,13 @@ view model =
       , Html.section [ A.id "requests-and-memos" ]
         [ Html.h2 [] [ Html.text "Requests" ]
         , Html.ul [] (List.map viewRequest model.requests)
-        , Html.button [ E.onClick NewOrder ] [ Html.text "move to new order" ]
+        , Html.button [ E.onClick NewOrder ] [ Html.text "mark as ordered" ]
         , Html.h2 [] [ Html.text "Memos" ]
         , Html.ul [] ( List.map viewMemo model.memos )
         , addMemoView model.workingMemo
         ]
       , Html.section [ A.id "orders" ]
-        [ Html.div [ A.id "open-orders" ]
-          [ Html.h2 [] [ Html.text "Open Orders" ]
-          , Html.ul [] (List.map viewOrder (filterOrderBy Open model.orders)) ]
-        , Html.div [ A.id "ordered-orders" ]
+        [ Html.div [ A.id "ordered-orders" ]
           [ Html.h2 [] [ Html.text "Ordered Orders" ]
           , Html.ul [] (List.map viewOrder (filterOrderBy Ordered model.orders)) ]
         , Html.div [ A.id "served-orders" ]
