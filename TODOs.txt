@@ -5,6 +5,11 @@ backlog:
     - how does this work at Fuddruckers where cheese is a separate lineitem?
     - ideal output: [ Guthrie burger no onions, Guthrie cheese, Tony burger, Tony cheese, Guthrie soda, Tony soda ]
     - implies that cheese is a special type
+    - possible item categories:
+      * beverage (coke, diet coke, sprite, ...)
+      * burger (hamburger, veggie burger, ...)
+      * addon (cheddar cheese, pepperjack cheese, ...) (kinda Fuddruckers specific)
+      * side (fries, ...)
   undo
     - how does this work analytics log?
   guest-centric memos, working towards a "guest profile"
