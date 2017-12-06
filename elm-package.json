@@ -1,8 +1,8 @@
 {
     "version": "1.0.0",
     "summary": "Mobile app for facilitating Bottomless Burgers",
-    "repository": "",
-    "license": "",
+    "repository": "https://github.com/zachrose/burgertracker",
+    "license": "MIT",
     "source-directories": [
         "src",
         "test"
