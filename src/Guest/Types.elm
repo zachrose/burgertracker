@@ -1,6 +1,6 @@
-module Guest.Types exposing (..)
+module Guest.Types exposing (Guest(..))
+
 
 type Guest
-  = NormalGuest String
-  | CompedGuest String
-
+    = NormalGuest String
+    | CompedGuest String
