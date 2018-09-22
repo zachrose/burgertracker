@@ -1,10 +1,11 @@
-module MenuItem.Types exposing (..)
+module MenuItem.Types exposing (MenuItem, PriceInCents)
 
-type alias PriceInCents = Int
+
+type alias PriceInCents =
+    Int
+
 
 type alias MenuItem =
-  { name: String
-  , price: PriceInCents
-  }
-
-
+    { name : String
+    , price : PriceInCents
+    }

@@ -1,14 +1,16 @@
-module Main exposing (..)
+module Main exposing (main)
 
-import Html exposing (program)
-
-import State exposing (init, timedUpdate, subscriptions, validateGuest)
+import Browser exposing (document)
+import State exposing (init, subscriptions, timedUpdate, validateGuest)
+import Types exposing (Model, TimeMsg)
 import View exposing (timedView)
+import Json.Decode as Decode exposing (Value)
 
+main : Program Value Model TimeMsg
 main =
-  program
-    { init = init
-    , update = timedUpdate
-    , view = timedView
-    , subscriptions = subscriptions
-    }
+    Browser.document
+        { init = init
+        , update = timedUpdate
+        , view = timedView
+        , subscriptions = subscriptions
+        }
